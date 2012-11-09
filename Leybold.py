@@ -54,6 +54,23 @@ class ItrUpdater(object):
             return True
         return False
 
+class ITR(object):
+    pressure = 1.0
+    def parse_status(self, status):
+        #self.check_message(status)
+        #self.parse_state(status[2])
+        #self.parse_error(status[3])
+        self.parse_pressure(status[4:6])
+        #self.parse_version(status[6])
+        #self.parse_type(status[7])
+        print "%.3E" % self.pressure
+
+    def parse_pressure(self, data):
+        self.pressure = 10.**((ord(data[0])*256+ord(data[1]))/4000.-12.5)
+
+class ITR90(ITR):
+    pass
+
 toHex = lambda x:"".join([hex(ord(c))[2:].zfill(2) for c in x])
 def printer(data):
     print [toHex(byte) for byte in data]
@@ -65,7 +82,10 @@ if __name__ == "__main__":
     s1 = SerialReceiver(device)
     s1.start()
 
-    iu = ItrUpdater(printer)
+    itr90 = ITR90()
+
+    #iu = ItrUpdater(printer)
+    iu = ItrUpdater(itr90.parse_status)
 
     try:
         while True:
