@@ -14,7 +14,7 @@ class SerialReceiver(threading.Thread):
         self.ser = serial.Serial(device, timeout = 0)
         self.data_buffer = ""
         self.closing = False # A flag to indicate thread shutdown
-        self.sleeptime = 0.00005
+        self.sleeptime = 0.001
         threading.Thread.__init__(self)
 
     def run(self):
