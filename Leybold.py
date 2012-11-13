@@ -92,6 +92,10 @@ class ITR(object):
         self.last_update = time.time()
         #print "%.3E" % self.pressure
 
+    def fix_gauge_type(self):
+        if not isinstance(self, self.sensor_type):
+            self.__class__ = self.sensor_type
+
     def parse_version(self, data):
         self.version = ord(data[6]) / 20.
 
@@ -150,10 +154,10 @@ if __name__ == "__main__":
     s1 = SerialReceiver(device)
     s1.start()
 
-    itr90 = ITR90(debug = True)
+    itr = ITR(debug = True)
 
     #iu = ItrUpdater(hex_printer)
-    iu = ItrUpdater(itr90.parse_status, debug=True)
+    iu = ItrUpdater(itr.parse_status, debug=True)
 
     try:
         last_time = time.time()
@@ -165,10 +169,11 @@ if __name__ == "__main__":
                 i += 1
                 last_time = time.time()
                 try:
-                    print "[%8d] Average pressure: %.1f mbar" % (i, itr90.get_average_pressure())
+                    itr.fix_gauge_type()
+                    print "[%8d] Average pressure: %.1f mbar  sensor type: %s  software version: %f" % (i, itr.get_average_pressure(), itr.sensor_type, itr.version)
                 except NoDataError:
                     pass
-                itr90.clear_history()
+                itr.clear_history()
     except KeyboardInterrupt:
         s1.close()
     finally:
