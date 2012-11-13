@@ -143,11 +143,6 @@ class NoDataError(VacuumGaugeError):
 class ParseError(VacuumGaugeError):
     pass
 
-toHex = lambda x:"".join([hex(ord(c))[2:].zfill(2) for c in x])
-def hex_printer(data):
-    print [toHex(byte) for byte in data]
-
-
 if __name__ == "__main__":
     device = '/dev/tty.usbserial-FTUN6PL6A'
 
@@ -156,7 +151,6 @@ if __name__ == "__main__":
 
     itr = ITR(debug = True)
 
-    #iu = ItrUpdater(hex_printer)
     iu = ItrUpdater(itr.parse_status, debug=True)
 
     try:
