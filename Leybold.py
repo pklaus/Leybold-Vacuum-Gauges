@@ -28,9 +28,9 @@ class ItrUpdater(object):
                 self.buf = self.buf[1:]
 
 class RingBuffer(deque):
+    """ http://en.wikipedia.org/wiki/Circular_buffer """
     def __init__(self, maxlen):
         deque.__init__(self, maxlen=maxlen)
-    # http://en.wikipedia.org/wiki/Circular_buffer
     def tolist(self):
         return list(self)
 
@@ -140,7 +140,7 @@ class ParseError(VacuumGaugeError):
     pass
 
 toHex = lambda x:"".join([hex(ord(c))[2:].zfill(2) for c in x])
-def printer(data):
+def hex_printer(data):
     print [toHex(byte) for byte in data]
 
 
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     itr90 = ITR90(debug = True)
 
-    #iu = ItrUpdater(printer)
+    #iu = ItrUpdater(hex_printer)
     iu = ItrUpdater(itr90.parse_status, debug=True)
 
     try:
