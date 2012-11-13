@@ -3,12 +3,12 @@
 This Python code was written in order to be able to control **Leybold
 ITR90** and **ITR200** vacuum gauges with a computer.
 The vacuum gauges have an *RS232 interface* where they send their status
-in a binary format every ~16ms.
+in a binary format every ~16ms.  
 The gauges must be provided with the needed electric power and have to
 be connected to a serial port on your computer for this software to
-work. In order to achieve this, a _custom cable_ is needed as both
--- the power supply and the RS232 port -- have to be connected to the
-one single DSUB-15 connector on the gauges.  
+work. In order to achieve this, a _custom cable_ is needed, as both -
+the power supply and the RS232 port - have to be connected to a single
+DSUB-15 connector on each gauge.  
 Once your hardware is connected you need to adjust this software to the
 virtual (or real) serial port on your computer and run it.
 
