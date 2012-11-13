@@ -151,8 +151,19 @@ if __name__ == "__main__":
     iu = ItrUpdater(itr90.parse_status, debug=True)
 
     try:
+        last_time = time.time()
+        i = 0
         while True:
+            time.sleep(0.001)
             iu.add_new_input(s1.pop_buffer())
+            if time.time()-last_time > 1.:
+                i += 1
+                last_time = time.time()
+                try:
+                    print "[%8d] Average pressure: %.1f mbar" % (i, itr90.get_average_pressure())
+                except NoDataError:
+                    pass
+                itr90.clear_history()
     except KeyboardInterrupt:
         s1.close()
     finally:
