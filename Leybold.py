@@ -70,10 +70,7 @@ class RingBuffer(deque):
 
 class ITR(object):
     # constants:
-    sensor_types = {
-            10: 'ITR 90',
-            12: 'ITR 200',
-    }
+    sensor_types = dict() # to be filled in __init__()
     # initial values:
     pressure = None
     version = None
@@ -82,23 +79,42 @@ class ITR(object):
     pressure_history = RingBuffer(maxlen=1000)
     def __init__(self, debug = False):
         self.debug = debug
+        self.sensor_types = {
+            10: ITR90,
+            12: ITR200,
+        }
     def parse_status(self, status):
         #self.check_message(status)
         try:
-            #self.parse_state(status[2])
-            #self.parse_error(status[3])
-            self.parse_pressure(status[4:6])
-            #self.parse_version(status[6])
-            #self.parse_type(status[7])
-        except e:
+            #self.parse_state(status)
+            #self.parse_error(status)
+            self.parse_pressure(status)
+            self.parse_version(status)
+            self.parse_type(status)
+        except ParseError:
+            raise
+        except Exception, e:
             if self.debug: print str(e)
             raise ParseError(e)
         self.last_update = time.time()
         #print "%.3E" % self.pressure
 
+    def parse_version(self, data):
+        self.version = ord(data[6]) / 20.
+
+    def parse_state(self, data):
+        return NotImplemented
+
+    def parse_error(self, data):
+        return NotImplemented
+
     def parse_pressure(self, data):
-        self.pressure = 10.**((ord(data[0])*256+ord(data[1]))/4000.-12.5)
+        (highbyte, lowbyte) = (data[4], data[5])
+        self.pressure = 10.**((ord(highbyte)*256+ord(lowbyte))/4000.-12.5)
         self.pressure_history.append((time.time(), self.pressure))
+
+    def parse_type(self, data):
+        self.sensor_type = self.sensor_types[ord(data[7])]
 
     def get_average_pressure(self, num_samples=60):
         # 1 sample / 0.016 seconds = 62.5 samples per second
@@ -112,15 +128,11 @@ class ITR(object):
     def clear_history(self):
         self.pressure_history.clear()
 
-    def parse_version(self, data):
-        self.version = ord(data[6]) / 20
-
-    def parse_type(self, data):
-        self.sensor_type = sensor_types[ord(data[7])]
-
 class ITR90(ITR):
     pass
 
+class ITR200(ITR):
+    pass
 
 class LeyboldError(Exception):
     pass
