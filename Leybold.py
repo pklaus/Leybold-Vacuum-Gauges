@@ -140,7 +140,7 @@ def printer(data):
 
 
 if __name__ == "__main__":
-    device = '/dev/tty.usbserial'
+    device = '/dev/tty.usbserial-FTUN6PL6A'
 
     s1 = SerialReceiver(device)
     s1.start()
