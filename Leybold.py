@@ -2,6 +2,7 @@
 
 from serialrecv import SerialReceiver
 import operator
+import time
 
 class ItrUpdater(object):
     fixed_bytes = {0: chr(0x7), 1: chr(0x5) }
@@ -12,6 +13,7 @@ class ItrUpdater(object):
         self.in_sync = False
         self.callback = callback
         self.debug = debug
+        self.last_time = time.time()
 
     def add_new_input(self, data):
         self.buf += data
@@ -28,6 +30,8 @@ class ItrUpdater(object):
         message = self.get_message()
         if message != False:
             self.callback(message)
+            #print time.time() - self.last_time
+            self.last_time = time.time()
         else:
             self.buf = self.buf[1:]
             self.in_sync = False
