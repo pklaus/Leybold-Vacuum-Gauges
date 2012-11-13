@@ -11,7 +11,7 @@ class SerialReceiver(threading.Thread):
         self._target = self.read
         self._args = args
         self.__lock = threading.Lock()
-        self.ser = serial.Serial(device)
+        self.ser = serial.Serial(device, timeout = 0)
         self.data_buffer = ""
         self.closing = False # A flag to indicate thread shutdown
         self.sleeptime = 0.00005
