@@ -3,6 +3,7 @@
 from serialrecv import SerialReceiver
 import operator
 import time
+from collections import deque
 
 class ItrUpdater(object):
     fixed_bytes = {0: chr(0x7), 1: chr(0x5) }
@@ -60,6 +61,13 @@ class ItrUpdater(object):
             return True
         return False
 
+class RingBuffer(deque):
+    def __init__(self, maxlen):
+        deque.__init__(self, maxlen=maxlen)
+    # http://en.wikipedia.org/wiki/Circular_buffer
+    def tolist(self):
+        return list(self)
+
 class ITR(object):
     # constants:
     sensor_types = {
@@ -71,6 +79,7 @@ class ITR(object):
     version = None
     sensor_type = None
     last_update = None
+    pressure_history = RingBuffer(maxlen=1000)
     def __init__(self, debug = False):
         self.debug = debug
     def parse_status(self, status):
@@ -89,6 +98,19 @@ class ITR(object):
 
     def parse_pressure(self, data):
         self.pressure = 10.**((ord(data[0])*256+ord(data[1]))/4000.-12.5)
+        self.pressure_history.append((time.time(), self.pressure))
+
+    def get_average_pressure(self, num_samples=60):
+        # 1 sample / 0.016 seconds = 62.5 samples per second
+        if self.debug and num_samples > len(self.pressure_history):
+            print "The buffer contains only %i samples. Cannot calculate the average over %i values." % (len(self.pressure_history), num_samples)
+        if len(self.pressure_history) == 0:
+            raise NoDataError('cannot calculate an average pressure without any values.')
+        num_samples = min(num_samples, len(self.pressure_history))
+        return sum([hist[1] for hist in self.pressure_history.tolist()[-num_samples:]])/float(num_samples)
+
+    def clear_history(self):
+        self.pressure_history.clear()
 
     def parse_version(self, data):
         self.version = ord(data[6]) / 20
@@ -104,6 +126,9 @@ class LeyboldError(Exception):
     pass
 
 class VacuumGaugeError(LeyboldError):
+    pass
+
+class NoDataError(VacuumGaugeError):
     pass
 
 class ParseError(VacuumGaugeError):
