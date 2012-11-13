@@ -8,9 +8,9 @@ The gauges must be provided with the needed electric power and have to
 be connected to a serial port on your computer for this software to
 work. In order to achieve this, a _custom cable_ is needed, as both -
 the power supply and the RS232 port - have to be connected to a single
-DSUB-15 connector on each gauge.  
+DA-15 (or "D-sub 15") connector on each gauge.  
 Once your hardware is connected you need to adjust this software to the
-virtual (or real) serial port on your computer and run it.
+virtual (or physical) serial port on your computer and run it.
 
 Currently the software (or rather the ITR classes) provide the software
 / the user with the following amenities:
