@@ -61,7 +61,16 @@ class ItrUpdater(object):
         return False
 
 class ITR(object):
-    pressure = 1.0
+    # constants:
+    sensor_types = {
+            10: 'ITR 90',
+            12: 'ITR 200',
+    }
+    # initial values:
+    pressure = None
+    version = None
+    sensor_type = None
+    last_update = None
     def __init__(self, debug = False):
         self.debug = debug
     def parse_status(self, status):
@@ -75,11 +84,17 @@ class ITR(object):
         except e:
             if self.debug: print str(e)
             raise ParseError(e)
-        #self.last_update = time.time()
+        self.last_update = time.time()
         #print "%.3E" % self.pressure
 
     def parse_pressure(self, data):
         self.pressure = 10.**((ord(data[0])*256+ord(data[1]))/4000.-12.5)
+
+    def parse_version(self, data):
+        self.version = ord(data[6]) / 20
+
+    def parse_type(self, data):
+        self.sensor_type = sensor_types[ord(data[7])]
 
 class ITR90(ITR):
     pass
