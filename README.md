@@ -19,6 +19,16 @@ Currently the software (or rather the ITR classes) provide the software
 * a history of past pressure values,
 * easy access to all status and error information the gauges provide.
 
+Here is how this software works:
+
+* In one thread a loop is reading data from the serial port and adds it
+  to a FIFO queue.
+* The ITR (90 / 200) classes start another thread where a loop reads
+  from the former FIFO queue, splits the received bytes into validated,
+  meaningfull messages and hands them to another method in this class
+  which parses the message and adjusts the status of the class accordingly.
+  A history of the vacuum pressure is stored in a thread safe ring buffer.
+
 ### Requirements
 
 This software is written in Python v2.7, so you obviously need to install

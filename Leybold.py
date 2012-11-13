@@ -4,28 +4,8 @@ from serialrecv import SerialReceiver
 import operator
 import time
 from collections import deque
-
-class ItrUpdater(object):
-    """ This class serves as a buffer, validity checker
-        and as a message synchroniser. """
-    msg_size_bytes = 9
-    buf = ""
-    def __init__(self, callback, debug=False):
-        self.callback = callback
-        self.debug = debug
-        self.last_time = time.time()
-
-    def add_new_input(self, data):
-        self.buf += data
-        while len(self.buf) >= self.msg_size_bytes:
-            msg = self.buf[:9]
-            if ITR.valid_message(msg):
-                self.callback(msg)
-                self.buf = self.buf[9:]
-                #print time.time() - self.last_time
-                self.last_time = time.time()
-            else:
-                self.buf = self.buf[1:]
+import threading
+from Queue import Empty
 
 class RingBuffer(deque):
     """ http://en.wikipedia.org/wiki/Circular_buffer """
@@ -34,8 +14,9 @@ class RingBuffer(deque):
     def tolist(self):
         return list(self)
 
-class ITR(object):
+class ITR(threading.Thread):
     # constants:
+    msg_size_bytes = 9
     fixed_bytes = {0: chr(0x7), 1: chr(0x5) }
     checksum_byte = 8
     # volatile constants:
@@ -46,17 +27,46 @@ class ITR(object):
     sensor_type = None
     last_update = None
     pressure_history = RingBuffer(maxlen=1000)
+    sleeptime = 0.0005
 
-    def __init__(self, debug = False):
+    def __init__(self, in_queue, out_queue, debug = False):
         self.debug = debug
         self.sensor_types = {
             10: ITR90,
             12: ITR200,
         }
+        self.in_queue = in_queue
+        self.out_queue = out_queue
+        self.closing = False # A flag to indicate thread shutdown
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self.read_from_queue()
+
+    def close(self):
+        self.closing = True
+
+    def read_from_queue(self):
+        """ This method serves as a buffer, validity checker
+            and as a message synchroniser. """
+        str_buffer = ""
+        while not self.closing:
+            try:
+                str_buffer += self.in_queue.get_nowait()
+            except Empty:
+                time.sleep(self.sleeptime)
+                continue
+            while len(str_buffer) >= self.msg_size_bytes:
+                msg = str_buffer[:9]
+                if ITR.valid_message(msg):
+                    self.parse_status(msg)
+                    str_buffer = str_buffer[9:]
+                else:
+                    str_buffer = str_buffer[1:]
 
     @classmethod
     def check_message(cls, data):
-        if len(data) < 9:
+        if len(data) < cls.msg_size_bytes:
             raise ParseError('Data has to contain 9 bytes!')
         for bytenum in cls.fixed_bytes:
             if data[bytenum] != cls.fixed_bytes[bytenum]:
@@ -148,17 +158,14 @@ if __name__ == "__main__":
 
     s1 = SerialReceiver(device)
     s1.start()
-
-    itr = ITR(debug = True)
-
-    iu = ItrUpdater(itr.parse_status, debug=True)
+    itr = ITR(s1.in_queue, Queue(), debug = True)
+    itr.start()
 
     try:
         last_time = time.time()
         i = 0
         while True:
             time.sleep(0.001)
-            iu.add_new_input(s1.pop_buffer())
             if time.time()-last_time > 1.:
                 i += 1
                 last_time = time.time()
@@ -170,6 +177,9 @@ if __name__ == "__main__":
                 itr.clear_history()
     except KeyboardInterrupt:
         s1.close()
+        itr.close()
     finally:
         s1.close()
+        itr.close()
     s1.join()
+    itr.join()

@@ -3,6 +3,8 @@
 import serial
 import threading
 import time
+from Queue import Queue
+
 class SerialReceiver(threading.Thread):
     """ This class has been written by
         Philipp Klaus and can be found on
@@ -10,11 +12,10 @@ class SerialReceiver(threading.Thread):
     def __init__(self, device, *args):
         self._target = self.read
         self._args = args
-        self.__lock = threading.Lock()
         self.ser = serial.Serial(device, timeout = 0)
-        self.data_buffer = ""
+        self.in_buffer = Queue()
         self.closing = False # A flag to indicate thread shutdown
-        self.sleeptime = 0.001
+        self.sleeptime = 0.0005
         threading.Thread.__init__(self)
 
     def run(self):
@@ -23,22 +24,9 @@ class SerialReceiver(threading.Thread):
     def read(self):
         while not self.closing:
             time.sleep(self.sleeptime)
-            if not self.__lock.acquire(False):
-                continue
-            try:
-                self.data_buffer += self.ser.read(6)
-            finally:
-                self.__lock.release()
+            data = self.ser.read(6)
+            if data: self.in_buffer.put(data)
         self.ser.close()
-
-    def pop_buffer(self):
-        # If a request is pending, we don't access the buffer
-        if not self.__lock.acquire(False):
-            return ""
-        buf = self.data_buffer
-        self.data_buffer = ""
-        self.__lock.release()
-        return buf
 
     def write(data):
         self.ser.write(data)
@@ -55,8 +43,8 @@ if __name__ == "__main__":
 
     try:
         while True:
-            data = s1.pop_buffer()
-            if data != "": print repr(data)
+            data = s1.in_buffer.get()
+            print repr(data)
     except KeyboardInterrupt:
         s1.close()
     finally:
