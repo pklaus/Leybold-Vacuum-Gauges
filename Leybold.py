@@ -6,60 +6,26 @@ import time
 from collections import deque
 
 class ItrUpdater(object):
-    fixed_bytes = {0: chr(0x7), 1: chr(0x5) }
-    checksum_byte = 8
-    byte_num = 9
+    """ This class serves as a buffer, validity checker
+        and as a message synchroniser. """
+    msg_size_bytes = 9
+    buf = ""
     def __init__(self, callback, debug=False):
-        self.buf = ""
-        self.in_sync = False
         self.callback = callback
         self.debug = debug
         self.last_time = time.time()
 
     def add_new_input(self, data):
         self.buf += data
-        if not self.enough_bytes():
-            return
-        if not self.in_sync:
-            if self.synchronize():
-                #print 'syncing'
-                self.in_sync = True
+        while len(self.buf) >= self.msg_size_bytes:
+            msg = self.buf[:9]
+            if ITR.valid_message(msg):
+                self.callback(msg)
+                self.buf = self.buf[9:]
+                #print time.time() - self.last_time
+                self.last_time = time.time()
             else:
-                return
-        if not self.enough_bytes():
-            return
-        message = self.get_message()
-        if message != False:
-            self.callback(message)
-            #print time.time() - self.last_time
-            self.last_time = time.time()
-        else:
-            self.buf = self.buf[1:]
-            self.in_sync = False
-
-    def enough_bytes(self):
-        return len(self.buf) >= self.byte_num
-
-    def get_message(self):
-        for bytenum in self.fixed_bytes:
-            if self.buf[bytenum] != self.fixed_bytes[bytenum]:
-                return False
-        if self.buf[self.checksum_byte] != chr(self.checksum256(self.buf[1:8])):
-            if self.debug: print 'problematic message %s' % repr(self.buf[:9])
-            return False
-        buf = self.buf[0:9]
-        self.buf = self.buf[9:]
-        return buf
-
-    def checksum256(self, st):
-        return reduce(operator.add, map(ord, st)) % 256
-
-    def synchronize(self):
-        pos = self.buf.find(self.fixed_bytes[0])
-        if pos >= 0:
-            self.buf = self.buf[pos:]
-            return True
-        return False
+                self.buf = self.buf[1:]
 
 class RingBuffer(deque):
     def __init__(self, maxlen):
@@ -70,6 +36,9 @@ class RingBuffer(deque):
 
 class ITR(object):
     # constants:
+    fixed_bytes = {0: chr(0x7), 1: chr(0x5) }
+    checksum_byte = 8
+    # volatile constants:
     sensor_types = dict() # to be filled in __init__()
     # initial values:
     pressure = None
@@ -77,15 +46,39 @@ class ITR(object):
     sensor_type = None
     last_update = None
     pressure_history = RingBuffer(maxlen=1000)
+
     def __init__(self, debug = False):
         self.debug = debug
         self.sensor_types = {
             10: ITR90,
             12: ITR200,
         }
-    def parse_status(self, status):
-        #self.check_message(status)
+
+    @classmethod
+    def check_message(cls, data):
+        if len(data) < 9:
+            raise ParseError('Data has to contain 9 bytes!')
+        for bytenum in cls.fixed_bytes:
+            if data[bytenum] != cls.fixed_bytes[bytenum]:
+                raise ParseError('Byte %d is %X, sum should be %X.' % (bytenum, ord(data[bytenum]), ord(cls.fixed_bytes[bytenum])))
+        if data[cls.checksum_byte] != chr(cls.checksum256(data[1:8])):
+            raise ParseError('Wrong checksum for message %s' % repr(data))
+
+    @classmethod
+    def valid_message(cls, data):
         try:
+            cls.check_message(data)
+            return True
+        except ParseError:
+            return False
+
+    @staticmethod
+    def checksum256(st):
+        return reduce(operator.add, map(ord, st)) % 256
+
+    def parse_status(self, status):
+        try:
+            ITR.check_message(status)
             #self.parse_state(status)
             #self.parse_error(status)
             self.parse_pressure(status)
