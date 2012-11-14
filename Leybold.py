@@ -110,10 +110,10 @@ class ITR(threading.Thread):
         self.version = ord(data[6]) / 20.
 
     def parse_state(self, data):
-        return NotImplemented
+        raise NotImplementedError
 
     def parse_error(self, data):
-        return NotImplemented
+        raise NotImplementedError
 
     def parse_pressure(self, data):
         (highbyte, lowbyte) = (data[4], data[5])
