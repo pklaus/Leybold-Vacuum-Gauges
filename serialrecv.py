@@ -24,7 +24,7 @@ class SerialReceiver(threading.Thread):
     def read(self):
         while not self.closing:
             time.sleep(self.sleeptime)
-            data = self.ser.read(6)
+            data = self.ser.read(9)
             if data: self.in_queue.put(data)
         self.ser.close()
 
