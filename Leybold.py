@@ -27,7 +27,6 @@ class ITR(threading.Thread):
     sensor_type = None
     last_update = None
     pressure_history = RingBuffer(maxlen=1000)
-    sleeptime = 0.0005
 
     def __init__(self, in_queue, out_queue, debug = False):
         self.debug = debug
@@ -52,9 +51,8 @@ class ITR(threading.Thread):
         str_buffer = ""
         while not self.closing:
             try:
-                str_buffer += self.in_queue.get_nowait()
+                str_buffer += self.in_queue.get(timeout=0.1)
             except Empty:
-                time.sleep(self.sleeptime)
                 continue
             while len(str_buffer) >= self.msg_size_bytes:
                 msg = str_buffer[:9]
