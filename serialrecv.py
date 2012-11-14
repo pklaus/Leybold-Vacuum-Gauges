@@ -13,7 +13,7 @@ class SerialReceiver(threading.Thread):
         self._target = self.read
         self._args = args
         self.ser = serial.Serial(device, timeout = 0)
-        self.in_buffer = Queue()
+        self.in_queue = Queue()
         self.closing = False # A flag to indicate thread shutdown
         self.sleeptime = 0.0005
         threading.Thread.__init__(self)
@@ -25,7 +25,7 @@ class SerialReceiver(threading.Thread):
         while not self.closing:
             time.sleep(self.sleeptime)
             data = self.ser.read(6)
-            if data: self.in_buffer.put(data)
+            if data: self.in_queue.put(data)
         self.ser.close()
 
     def write(data):
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     try:
         while True:
-            data = s1.in_buffer.get()
+            data = s1.in_queue.get()
             print repr(data)
     except KeyboardInterrupt:
         s1.close()

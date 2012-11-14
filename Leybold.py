@@ -5,7 +5,7 @@ import operator
 import time
 from collections import deque
 import threading
-from Queue import Empty
+from Queue import Queue, Empty
 
 class RingBuffer(deque):
     """ http://en.wikipedia.org/wiki/Circular_buffer """
@@ -154,7 +154,7 @@ class ParseError(VacuumGaugeError):
     pass
 
 if __name__ == "__main__":
-    device = '/dev/tty.usbserial-FTUN6PL6A'
+    device = 'COM7'
 
     s1 = SerialReceiver(device)
     s1.start()
@@ -165,15 +165,15 @@ if __name__ == "__main__":
         last_time = time.time()
         i = 0
         while True:
-            time.sleep(0.001)
+            time.sleep(0.3)
             if time.time()-last_time > 1.:
                 i += 1
                 last_time = time.time()
                 try:
                     itr.fix_gauge_type()
-                    print "[%8d] Average pressure: %.1f mbar  sensor type: %s  software version: %f" % (i, itr.get_average_pressure(), itr.sensor_type, itr.version)
+                    if i%600 == 1: print "[%8d] Average pressure: %.1f mbar  sensor type: %s  software version: %f" % (i, itr.get_average_pressure(), itr.sensor_type, itr.version)
                 except NoDataError:
-                    pass
+                    print "No Data"
                 itr.clear_history()
     except KeyboardInterrupt:
         s1.close()
