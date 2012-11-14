@@ -1,6 +1,9 @@
 
 """ More to be found on http://wiki.python.org/moin/BitManipulation . """
 
+def bool_test_bit(int_type, bit_offset):
+    return test_bit(int_type, bit_offset) != 0
+
 def test_bit(int_type, bit_offset):
     """ returns a nonzero result, 2**bit_offset, if the bit at 'bit_offset' is one. """
     mask = 1 << bit_offset
