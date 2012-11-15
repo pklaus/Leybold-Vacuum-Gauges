@@ -147,7 +147,7 @@ class VacuumGaugeError(LeyboldError):
 class NoDataError(VacuumGaugeError):
     pass
 
-class ParseError(VacuumGaugeError):
+class ParseError(VacuumGaugeError, AssertionError):
     pass
 
 if __name__ == "__main__":
