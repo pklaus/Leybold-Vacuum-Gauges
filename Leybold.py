@@ -173,7 +173,7 @@ if __name__ == "__main__":
                 last_time = time.time()
                 try:
                     itr.fix_gauge_type()
-                    if i%600 == 1: print "[%8d] Average pressure: %.1f mbar  sensor type: %s  software version: %f" % (i, itr.get_average_pressure(), itr.sensor_type, itr.version)
+                    print "[%6d] Pressure (avg over last second): %.1f mbar  sensor type: %s  version: %f" % (i, itr.get_average_pressure(), itr, itr.version)
                 except NoDataError:
                     print "No Data"
                 itr.clear_history()
