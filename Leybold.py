@@ -18,6 +18,9 @@ class ITR(threading.Thread):
     msg_size_bytes = 9
     fixed_bytes = {0: chr(0x7), 1: chr(0x5) }
     checksum_byte = 8
+    emission_states = { 0: 'emission off', 1: 'emission 25 uA',
+                        2: 'emission 5mA', 3: 'degas' }
+    pressure_units = {0: 'mbar', 1: 'Torr', 2: 'Pa'}
     # volatile constants:
     sensor_types = dict() # to be filled in __init__()
     # initial values:
@@ -25,6 +28,9 @@ class ITR(threading.Thread):
     version = None
     sensor_type = None
     last_update = None
+    toggle_bit = None
+    emission_state = None
+    pressure_unit = None
     pressure_history = RingBuffer(maxlen=1000)
 
     def __init__(self, in_queue, out_queue, debug = False):
@@ -86,8 +92,8 @@ class ITR(threading.Thread):
     def parse_status(self, status):
         try:
             ITR.check_message(status)
-            #self.parse_state(status)
-            #self.parse_error(status)
+            self.parse_state(status)
+            self.parse_error(status)
             self.parse_pressure(status)
             self.parse_version(status)
             self.parse_type(status)
@@ -107,10 +113,24 @@ class ITR(threading.Thread):
         self.version = ord(data[6]) / 20.
 
     def parse_state(self, data):
-        raise NotImplementedError
+        """ This method only implements analysing the bits being defined identically
+        for the ITR90 / ITR200. It has to be overriden by derived classes to adjust
+        to the specific behaviour. """
+        self.parse_emission_state(data)
+        self.parse_toggle_bit(data)
+        self.parse_pressure_unit(data)
+
+    def parse_emission_state(self, data):
+        self.emission_state = ord(data[2]) & 0b11
+
+    def parse_toggle_bit(self, data):
+        self.toggle_bit = ord(data[2]) & 0b1000
+
+    def parse_pressure_unit(self, data):
+        self.pressure_unit = ord(data[2]) & 0b110000
 
     def parse_error(self, data):
-        raise NotImplementedError
+        pass
 
     def parse_pressure(self, data):
         (highbyte, lowbyte) = (data[4], data[5])
@@ -136,9 +156,21 @@ class ITR(threading.Thread):
         return self.__class__.__name__
 
 class ITR90(ITR):
-    pass
+    error_codes = {0b0000: 'no error', 0b0101: 'Pirani adjusted poorly',
+            0b1000: 'BA error', 0b1001: 'Pirani error'}
+    def parse_error(self, data):
+        self.error_code = ord(data[3]) & 0b11110000
+    def parse_state(self, data):
+        self.parse_emission_state(data)
+        self.parse_adjustment_status(data)
+        self.parse_toggle_bit(data)
+        self.parse_pressure_unit(data)
+    def parse_adjustment_status(self, data):
+        """ 1000mbar adjustment """
+        self.currently_adjusting = bool(ord(data[2]) & 0b100)
 
 class ITR200(ITR):
+    active_filament = {0: '1st filament', 1: '2nd filament'}
     pass
 
 class LeyboldError(Exception):
