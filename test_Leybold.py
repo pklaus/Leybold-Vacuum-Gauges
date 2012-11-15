@@ -44,7 +44,6 @@ if __name__ == "__main__":
                 i += 1
                 last_time = time.time()
                 try:
-                    itr.fix_gauge_type()
                     print "[%6d] Pressure (avg over last second): %.1f mbar  sensor type: %s  version: %f" % (i, itr.get_average_pressure(), itr, itr.version)
                 except NoDataError:
                     pass

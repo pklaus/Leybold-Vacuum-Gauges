@@ -32,6 +32,7 @@ class ITR(threading.Thread):
     emission_state = None
     pressure_unit = None
     pressure_history = RingBuffer(maxlen=1000)
+    type_adjusted = False
 
     def __init__(self, in_queue, out_queue, debug = False):
         self.debug = debug
@@ -97,6 +98,9 @@ class ITR(threading.Thread):
             self.parse_pressure(status)
             self.parse_version(status)
             self.parse_type(status)
+            if not self.type_adjusted:
+                self.fix_gauge_type()
+                self.type_adjusted = True
         except ParseError:
             raise
         except Exception, e:
@@ -204,7 +208,6 @@ if __name__ == "__main__":
                 i += 1
                 last_time = time.time()
                 try:
-                    itr.fix_gauge_type()
                     print "[%6d] Pressure (avg over last second): %.1f mbar  sensor type: %s  version: %f" % (i, itr.get_average_pressure(), itr, itr.version)
                 except NoDataError:
                     print "No Data"
