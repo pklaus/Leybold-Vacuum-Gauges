@@ -10,7 +10,7 @@ class DummyDataProvider(threading.Thread):
     def __init__(self, dummy_data):
         self.in_queue = Queue()
         self.closing = False # A flag to indicate thread shutdown
-        self.sleeptime = 0.003
+        self.sleeptime = 0.001
         self.dummy_data = dummy_data
         threading.Thread.__init__(self)
 
