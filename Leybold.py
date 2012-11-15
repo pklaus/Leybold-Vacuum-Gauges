@@ -156,11 +156,11 @@ if __name__ == "__main__":
     from serialrecv import SerialReceiver
 
     s1 = SerialReceiver(device)
-    s1.start()
     itr = ITR(s1.in_queue, Queue(), debug = True)
-    itr.start()
 
     try:
+        s1.start()
+        itr.start()
         last_time = time.time()
         i = 0
         while True:

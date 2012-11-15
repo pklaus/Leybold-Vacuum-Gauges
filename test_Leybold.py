@@ -29,11 +29,11 @@ class DummyDataProvider(threading.Thread):
 if __name__ == "__main__":
 
     d1 = DummyDataProvider(sample_itr90)
-    d1.start()
     itr = ITR(d1.in_queue, Queue(), debug = True)
-    itr.start()
 
     try:
+        d1.start()
+        itr.start()
         last_time = time.time()
         i = 0
         update_time = 1.
