@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from serialrecv import SerialReceiver
 import operator
 import time
 from collections import deque
@@ -153,6 +152,8 @@ class ParseError(VacuumGaugeError):
 
 if __name__ == "__main__":
     device = 'COM7'
+
+    from serialrecv import SerialReceiver
 
     s1 = SerialReceiver(device)
     s1.start()
