@@ -132,6 +132,9 @@ class ITR(threading.Thread):
     def clear_history(self):
         self.pressure_history.clear()
 
+    def __str__(self):
+        return self.__class__.__name__
+
 class ITR90(ITR):
     pass
 
