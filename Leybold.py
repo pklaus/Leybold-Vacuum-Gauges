@@ -176,6 +176,19 @@ class ITR90(ITR):
     def parse_adjustment_status(self, data):
         """ 1000mbar adjustment """
         self.currently_adjusting = bool(ord(data[2]) & 0b100)
+    def set_unit_mbar(self):
+        self.send_message(chr(16)+chr(62)+chr(0))
+    def set_unit_Torr(self):
+        self.send_message(chr(16)+chr(62)+chr(1))
+    def set_unit_Pa(self):
+        self.send_message(chr(16)+chr(62)+chr(2))
+    def permanently_store_unit(self):
+        self.send_message(chr(32)+chr(62)+chr(62))
+    def set_degas(self, switch_on=True):
+        if switch_on:
+            self.send_message(chr(16)+chr(93)+chr(148))
+        else:
+            self.send_message(chr(16)+chr(93)+chr(105))
 
 class ITR200(ITR):
     active_filament = {0: '1st filament', 1: '2nd filament'}
