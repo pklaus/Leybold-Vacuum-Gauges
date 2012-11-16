@@ -4,7 +4,7 @@ import threading
 import time
 from Queue import Queue
 from sampledata import sample_itr90
-from Leybold import ITR
+from Leybold import ITR, NoDataError
 
 class DummyDataProvider(threading.Thread):
     def __init__(self, dummy_data):
