@@ -144,6 +144,10 @@ class ITR(threading.Thread):
     def parse_type(self, data):
         self.sensor_type = self.sensor_types[ord(data[7])]
 
+    def send_message(self, payload):
+        assert len(payload) == 3, "The payload to send has to contain 3 bytes."
+        self.out_queue.put('3' + payload + str(ITR.checksum256(payload)))
+
     def get_average_pressure(self, num_samples=60):
         # 1 sample / 0.016 seconds = 62.5 samples per second
         if self.debug and num_samples > len(self.pressure_history):
@@ -192,10 +196,10 @@ class ParseError(VacuumGaugeError, AssertionError):
 if __name__ == "__main__":
     device = 'COM7'
 
-    from serialrecv import SerialReceiver
+    from serialman import SerialManager
 
-    s1 = SerialReceiver(device)
-    itr = ITR(s1.in_queue, Queue(), debug = True)
+    s1 = SerialManager(device)
+    itr = ITR(s1.in_queue, s1.out_queue, debug = True)
 
     try:
         s1.start()
