@@ -9,10 +9,16 @@ class SerialManager(threading.Thread):
     """ This class has been written by
         Philipp Klaus and can be found on
         https://gist.github.com/4039175 .  """
-    def __init__(self, device, *args):
-        self._target = self.read
-        self._args = args
-        self.ser = serial.Serial(device, timeout = 0)
+    def __init__(self, device, kwargs=dict()):
+        settings = dict()
+        settings['baudrate'] = 9600
+        settings['bytesize'] = serial.EIGHTBITS
+        settings['parity'] = serial.PARITY_NONE
+        settings['stopbits'] = serial.STOPBITS_ONE
+        settings['timeout'] = 0
+        settings.update(kwargs)
+        self._kwargs = settings
+        self.ser = serial.Serial(device, **self._kwargs)
         self.in_queue = Queue()
         self.out_queue = Queue()
         self.closing = False # A flag to indicate thread shutdown
