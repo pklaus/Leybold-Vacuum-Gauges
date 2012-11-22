@@ -107,7 +107,6 @@ class ITR(threading.Thread):
             if self.debug: print str(e)
             raise ParseError(e)
         self.last_update = time.time()
-        #print "%.3E" % self.pressure
 
     def fix_gauge_type(self):
         if not isinstance(self, self.sensor_type):
@@ -237,9 +236,21 @@ if __name__ == "__main__":
                 last_time = time.time()
                 try:
                     print "[%6d] Pressure (avg over last second): %.1f %s  sensor type: %s  version: %f" % (i, itr.get_average_pressure(), ITR.pressure_units[itr.pressure_unit], itr, itr.version)
+                    print "Samples in buffer: %d" % len(itr.pressure_history)
                 except NoDataError:
                     print "No Data"
                 itr.clear_history()
+                print "Toggle Bit:", itr.toggle_bit
+                print "Emission State:", ITR.emission_states[itr.emission_state]
+                print "Pressure Unit:", ITR.pressure_units[itr.pressure_unit]
+                if type(itr) == ITR90:
+                    print "Error Code:", ITR90.error_codes[itr.error_code]
+                #if i == 5: itr.permanently_store_unit()
+                if i % 4 == 1:
+                    itr.set_unit_Torr()
+                if i % 4 == 3:
+                    itr.set_unit_mbar()
+                print ""
     except KeyboardInterrupt:
         s1.close()
         itr.close()
