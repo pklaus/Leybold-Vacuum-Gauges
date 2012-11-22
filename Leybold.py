@@ -96,7 +96,7 @@ class ITR(threading.Thread):
             self.parse_state(status)
             self.parse_error(status)
             self.parse_pressure(status)
-            self.parse_version(status)
+            if not self.version: self.parse_version(status)
             self.parse_type(status)
             if not self.type_adjusted:
                 self.fix_gauge_type()
@@ -114,6 +114,8 @@ class ITR(threading.Thread):
 
     def parse_version(self, data):
         self.version = ord(data[6]) / 20.
+        # This is always a number with at most 2 decimals:
+        #print "%.2f" % self.version
 
     def parse_state(self, data):
         """ This method only implements analysing the bits being defined identically
@@ -235,7 +237,7 @@ if __name__ == "__main__":
                 i += 1
                 last_time = time.time()
                 try:
-                    print "[%6d] Pressure (avg over last second): %.1f %s  sensor type: %s  version: %f" % (i, itr.get_average_pressure(), ITR.pressure_units[itr.pressure_unit], itr, itr.version)
+                    print "[%6d] Pressure (avg over last second): %.1f %s  sensor type: %s  version: %.2f" % (i, itr.get_average_pressure(), ITR.pressure_units[itr.pressure_unit], itr, itr.version)
                     print "Samples in buffer: %d" % len(itr.pressure_history)
                 except NoDataError:
                     print "No Data"
