@@ -128,17 +128,22 @@ class ITR(threading.Thread):
         self.emission_state = ord(data[2]) & 0b11
 
     def parse_toggle_bit(self, data):
-        self.toggle_bit = ord(data[2]) & 0b1000
+        self.toggle_bit = bool(ord(data[2]) & 0b1000)
 
     def parse_pressure_unit(self, data):
-        self.pressure_unit = ord(data[2]) & 0b110000
+        self.pressure_unit = (ord(data[2]) & 0b110000) >> 4
 
     def parse_error(self, data):
         pass
 
     def parse_pressure(self, data):
         (highbyte, lowbyte) = (data[4], data[5])
-        self.pressure = 10.**((ord(highbyte)*256+ord(lowbyte))/4000.-12.5)
+        if self.pressure_unit == 0:
+            self.pressure = 10.**((ord(highbyte)*256+ord(lowbyte))/4000.-12.5)
+        if self.pressure_unit == 1:
+            self.pressure = 10.**((ord(highbyte)*256+ord(lowbyte))/4000.-12.625)
+        if self.pressure_unit == 2:
+            self.pressure = 10.**((ord(highbyte)*256+ord(lowbyte))/4000.-10.5)
         self.pressure_history.append((time.time(), self.pressure))
 
     def parse_type(self, data):
@@ -167,7 +172,7 @@ class ITR90(ITR):
     error_codes = {0b0000: 'no error', 0b0101: 'Pirani adjusted poorly',
             0b1000: 'BA error', 0b1001: 'Pirani error'}
     def parse_error(self, data):
-        self.error_code = ord(data[3]) & 0b11110000
+        self.error_code = ord(data[3]) & 0b11110000 >> 4
     def parse_state(self, data):
         self.parse_emission_state(data)
         self.parse_adjustment_status(data)
@@ -225,7 +230,7 @@ if __name__ == "__main__":
                 i += 1
                 last_time = time.time()
                 try:
-                    print "[%6d] Pressure (avg over last second): %.1f mbar  sensor type: %s  version: %f" % (i, itr.get_average_pressure(), itr, itr.version)
+                    print "[%6d] Pressure (avg over last second): %.1f %s  sensor type: %s  version: %f" % (i, itr.get_average_pressure(), ITR.pressure_units[itr.pressure_unit], itr, itr.version)
                 except NoDataError:
                     print "No Data"
                 itr.clear_history()
