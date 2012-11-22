@@ -165,6 +165,9 @@ class ITR(threading.Thread):
     def clear_history(self):
         self.pressure_history.clear()
 
+    def clear_buffers(self):
+        self.clear_history()
+
     def __str__(self):
         return self.__class__.__name__
 
@@ -183,10 +186,13 @@ class ITR90(ITR):
         self.currently_adjusting = bool(ord(data[2]) & 0b100)
     def set_unit_mbar(self):
         self.send_message(chr(16)+chr(62)+chr(0))
+        self.clear_buffers()
     def set_unit_Torr(self):
         self.send_message(chr(16)+chr(62)+chr(1))
+        self.clear_buffers()
     def set_unit_Pa(self):
         self.send_message(chr(16)+chr(62)+chr(2))
+        self.clear_buffers()
     def permanently_store_unit(self):
         self.send_message(chr(32)+chr(62)+chr(62))
     def set_degas(self, switch_on=True):
