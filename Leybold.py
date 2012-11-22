@@ -146,7 +146,7 @@ class ITR(threading.Thread):
 
     def send_message(self, payload):
         assert len(payload) == 3, "The payload to send has to contain 3 bytes."
-        self.out_queue.put('3' + payload + str(ITR.checksum256(payload)))
+        self.out_queue.put('\x03' + payload + str(chr(ITR.checksum256(payload))))
 
     def get_average_pressure(self, num_samples=60):
         # 1 sample / 0.016 seconds = 62.5 samples per second
