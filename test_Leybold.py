@@ -20,7 +20,7 @@ class DummyDataProvider(threading.Thread):
             time.sleep(self.sleeptime)
             self.in_queue.put(self.dummy_data[j])
             j += 1
-            j = j % len(self.dummy_data)
+            j %= len(self.dummy_data)
 
     def close(self):
         self.closing = True
