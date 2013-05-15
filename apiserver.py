@@ -10,16 +10,16 @@ from Leybold import ITR, LeyboldError
 
 from bottle import Bottle, HTTPError, PluginError
 
-class LeyboldBottlePlugin(object):
-    ''' This plugin provides Bottle routes which accept a `leybold` argument
+class LeyboldGaugesBottlePlugin(object):
+    ''' This plugin provides Bottle routes which accept a `gauges` argument
     with an interface to Leybold Gauges.
     It is based on the example found at
     http://bottlepy.org/docs/stable/plugindev.html#plugin-example-sqliteplugin
     '''
-    name = 'leybold'
+    name = 'gauges'
     api = 2
 
-    def __init__(self, device_names, keyword='leybold'):
+    def __init__(self, device_names, keyword='gauges'):
         self.devices = dict()
         for device_name in device_names:
             self.devices[device_name] = dict()
@@ -35,7 +35,7 @@ class LeyboldBottlePlugin(object):
 
     def setup(self, app):
         for other in app.plugins:
-            if not isinstance(other, LeyboldBottlePlugin): continue
+            if not isinstance(other, LeyboldGaugesBottlePlugin): continue
             if other.keyword == self.keyword:
                 raise PluginError("Found another MaxiGauge plugin with conflicting settings (non-unique keyword).")
         for device in self.devices:
@@ -54,8 +54,8 @@ class LeyboldBottlePlugin(object):
             return callback
 
         def wrapper(*args, **kwargs):
-            leybold = self.devices
-            kwargs[keyword] = leybold
+            gauges = self.devices
+            kwargs[keyword] = gauges
             try:
                 rv = callback(*args, **kwargs)
             except LeyboldError, e:
@@ -77,14 +77,14 @@ class LeyboldBottlePlugin(object):
 api = Bottle()
 
 @api.route('/gauges')
-def gauges(leybold):
-    return dict(gauges=[device for device in leybold])
+def list_gauges(gauges):
+    return dict(gauges=[device for device in gauges])
 
 @api.route('/pressure')
-def pressure(leybold):
+def pressure(gauges):
     status = dict()
-    for device in leybold:
-        itr = leybold[device]['ITR']
+    for device in gauges:
+        itr = gauges[device]['ITR']
         status[device] = dict(pressure=itr.get_average_pressure())
         itr.clear_history()
     return status
@@ -97,8 +97,8 @@ if __name__ == '__main__':
                         help='The serial port to connect to, sth. like COM7 on Windows /dev/ttyUSB1 on Linux.')
     args = parser.parse_args()
 
-    leybold_plugin = LeyboldBottlePlugin(args.serial_ports)
-    api.install(leybold_plugin)
+    leybold_gauges_plugin = LeyboldGaugesBottlePlugin(args.serial_ports)
+    api.install(leybold_gauges_plugin)
     if args.debug:
         api.run(host='0.0.0.0', port=args.port, debug=True, reloader=True)
     else:
