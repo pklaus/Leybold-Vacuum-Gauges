@@ -1,0 +1,23 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Digital Live Display{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <link type="text/css" rel="stylesheet" href="static/css/digital-display.css">
+  <script src="static/js/jquery-1.9.1.min.js"></script>
+  <script src="static/js/digital-display.js"></script>
+{% endblock %}
+
+{% block content %}
+    <h3>Live Vacuum Gauge Pressure Readings Shown in the Form of a Digital Display</h3>
+    <div id="gauge_container">
+        <div class='note'>Searching for Gauges...</div>
+    </div>
+    <p>All values are given in mbar.</p>
+
+
+    <script>
+
+    </script>
+{% endblock %}

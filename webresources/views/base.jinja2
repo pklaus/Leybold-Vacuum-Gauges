@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  {% block head %}
+
+    <title>{% block title %}{% endblock %} - Leybold Vacuum Gauges</title>
+
+    <script type="text/javascript" src="/static/js/jquery-1.9.1.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css" />
+
+    <!--  Scale the site properly on mobile devices
+          see https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+    <link type="text/css" rel="stylesheet" href="static/css/style.css">
+
+  {% endblock %}
+
+</head>
+<body>
+
+    <div id="content">{% block content %}{% endblock %}</div>
+
+    <div id="footer">
+        {% block footer %}
+            Powered by <a href="https://github.com/pklaus/Leybold-Vacuum-Gauges">Leybold-Vacuum-Gauges</a>.
+        {% endblock %}
+    </div>
+
+</body>
+</html>
