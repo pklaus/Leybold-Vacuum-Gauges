@@ -92,9 +92,20 @@ def list_gauges(gauges):
     return dict(gauges=[device for device in gauges])
 
 @api.route('/pressure')
-def pressure(gauges):
+@api.route('/pressure/')
+def all_pressures(gauges):
+    return pressure('all', gauges)
+
+@api.route('/pressure/<which>')
+def pressure(which, gauges):
     status = dict()
-    for device in gauges:
+    if which == 'all':
+        devices = list(gauges)
+    elif which in gauges:
+        devices = [which]
+    else:
+        abort(504, 'This gauge does not exist')
+    for device in devices:
         itr = gauges[device]['ITR']
         status[device] = dict(pressure=itr.get_average_pressure())
         itr.clear_history()
