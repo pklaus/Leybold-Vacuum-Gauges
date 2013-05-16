@@ -8,7 +8,7 @@ from serialman import SerialManager
 from serial.serialutil import SerialException
 from Leybold import ITR, LeyboldError
 
-from bottle import Bottle, HTTPError, PluginError
+from bottle import Bottle, HTTPError, PluginError, response
 
 class LeyboldGaugesBottlePlugin(object):
     ''' This plugin provides Bottle routes which accept a `gauges` argument
@@ -75,6 +75,17 @@ class LeyboldGaugesBottlePlugin(object):
             self.devices[device]['ITR'].join()
 
 api = Bottle()
+
+@api.hook('after_request')
+def enable_cors():
+    """
+    You need to add some headers to each request.
+    Don't use the wildcard '*' for Access-Control-Allow-Origin in production.
+    https://gist.github.com/richard-flosi/3789163
+    """
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
 
 @api.route('/gauges')
 def list_gauges(gauges):
