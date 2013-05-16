@@ -114,15 +114,23 @@ def pressure(which, gauges):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Start the Leybold Vacuum Gauges API Web-Server')
     parser.add_argument('-p', '--port', default='8080', help='The port to run the web server on.')
+    parser.add_argument('-6', '--ipv6', action='store_true', help='Listen to incoming connections via IPv6 instead of IPv4.')
     parser.add_argument('-d', '--debug', action='store_true', help='Start in debug mode (with verbose HTTP error pages.')
     parser.add_argument('serial_ports', metavar='SERIAL_PORT', nargs='+',
                         help='The serial port to connect to, sth. like COM7 on Windows /dev/ttyUSB1 on Linux.')
     args = parser.parse_args()
 
+    if args.debug and args.ipv6:
+        args.error('You cannot use IPv6 in debug mode, sorry.')
+
     leybold_gauges_plugin = LeyboldGaugesBottlePlugin(args.serial_ports)
     api.install(leybold_gauges_plugin)
+
     if args.debug:
         api.run(host='0.0.0.0', port=args.port, debug=True, reloader=True)
     else:
-        #run(host='0.0.0.0', port=args.port)
-        api.run(host='0.0.0.0', server='cherrypy', port=args.port)
+        if args.ipv6:
+            # CherryPy is Python3 ready and has IPv6 support:
+            api.run(host='::', server='cherrypy', port=args.port)
+        else:
+            api.run(host='0.0.0.0', server='cherrypy', port=args.port)
