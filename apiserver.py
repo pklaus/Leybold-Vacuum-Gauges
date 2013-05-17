@@ -111,8 +111,8 @@ def pressure(which, gauges):
         abort(504, 'This gauge does not exist')
     for device in devices:
         itr = gauges[device]['ITR']
-        status[device] = dict(pressure=itr.get_average_pressure())
-        itr.clear_history()
+        status[device] = dict(pressure=itr.get_average_pressure(num_samples = 30))
+        #itr.clear_history()
     return status
 
 @api.get('/nickname/<which>')
