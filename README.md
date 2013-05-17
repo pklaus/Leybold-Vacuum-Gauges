@@ -69,9 +69,11 @@ Copyright (C) 2012 Philipp Klaus (Institut fuer Kernphysik Frankfurt)
 This software also ships with 3rd party software licensed under OSS licences:
 
 * [jQuery][]
+* [jquery.inlineedit][]
 
 [PySerial]: http://pyserial.sourceforge.net/
 [Python]: http://www.python.org/getit/
 [Bottle]: http://bottlepy.org/
 [Jinja2]:http://jinja.pocoo.org/
+[jquery.inlineedit]: https://github.com/caphun/jquery.inlineedit
 [jQuery]: http://jquery.com/
