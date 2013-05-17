@@ -36,6 +36,11 @@ that first. You can [obtain it][Python] for almost any operating system.
 In addition you need the Python module [PySerial][] to run this software.
 You can install it via `pip install pyserial` on most operating systems.
 
+To run the API web server that comes with this software, you also need to
+install the Python web framework [Bottle][].  
+To run the web interface server you need the HTML template engine [Jinja2][]
+for Python.
+
 ### License
 
 Copyright (C) 2012 Philipp Klaus (Institut fuer Kernphysik Frankfurt)
@@ -59,5 +64,14 @@ Copyright (C) 2012 Philipp Klaus (Institut fuer Kernphysik Frankfurt)
 > TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 > SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#### 3rd Party Software
+
+This software also ships with 3rd party software licensed under OSS licences:
+
+* [jQuery][]
+
 [PySerial]: http://pyserial.sourceforge.net/
 [Python]: http://www.python.org/getit/
+[Bottle]: http://bottlepy.org/
+[Jinja2]:http://jinja.pocoo.org/
+[jQuery]: http://jquery.com/
