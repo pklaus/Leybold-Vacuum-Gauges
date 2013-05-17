@@ -8,7 +8,7 @@ from serialman import SerialManager
 from serial.serialutil import SerialException
 from Leybold import ITR, LeyboldError
 
-from bottle import Bottle, HTTPError, PluginError, response
+from bottle import Bottle, HTTPError, PluginError, response, request, abort
 
 class LeyboldGaugesBottlePlugin(object):
     ''' This plugin provides Bottle routes which accept a `gauges` argument
@@ -28,6 +28,7 @@ class LeyboldGaugesBottlePlugin(object):
                 in_queue = self.devices[device_name]['SerialManager'].in_queue
                 out_queue = self.devices[device_name]['SerialManager'].out_queue
                 self.devices[device_name]['ITR'] = ITR(in_queue, out_queue, debug = True)
+                self.devices[device_name]['nickname'] = ''
             except SerialException:
                 sys.stdout.write('Could not open serial device {0}\n'.format(device_name))
                 sys.exit(1)
@@ -89,7 +90,10 @@ def enable_cors():
 
 @api.route('/gauges')
 def list_gauges(gauges):
-    return dict(gauges=[device for device in gauges])
+    retval = []
+    for device in gauges:
+        retval.append(dict(port=device, nickname=gauges[device]['nickname']))
+    return dict(gauges=retval)
 
 @api.route('/pressure')
 @api.route('/pressure/')
@@ -109,6 +113,29 @@ def pressure(which, gauges):
         itr = gauges[device]['ITR']
         status[device] = dict(pressure=itr.get_average_pressure())
         itr.clear_history()
+    return status
+
+@api.get('/nickname/<which>')
+def pressure(which, gauges):
+    status = dict()
+    if which == 'all':
+        devices = list(gauges)
+    elif which in gauges:
+        devices = [which]
+    else:
+        abort(504, 'This gauge does not exist')
+    for device in devices:
+        status[device] = dict(nickname=gauges[device]['nickname'])
+    return status
+
+@api.post('/nickname/<which>')
+def pressure(which, gauges):
+    nickname = request.forms.get('nickname')
+    status = dict()
+    if which not in gauges:
+        abort(504, 'This gauge does not exist')
+    gauges[which]['nickname'] = nickname
+    status = dict(which=dict(nickname=gauges[which]['nickname']))
     return status
 
 if __name__ == '__main__':
