@@ -8,7 +8,7 @@ var slug = function(str) {
 }
 
 $.ajax({
-    url:      'http://localhost:8080/gauges',
+    url:      'api/gauges',
     method:   'GET',
     dataType: 'json',
     timeout:  1000,
@@ -32,7 +32,7 @@ $.ajax({
 var tv = 500;
 var iv = setInterval( function() {
     $.ajax({
-        url:      'http://localhost:8080/pressure/all',
+        url:      'api/pressure/all',
         method:   'GET',
         dataType: 'json',
         timeout:  1000,
