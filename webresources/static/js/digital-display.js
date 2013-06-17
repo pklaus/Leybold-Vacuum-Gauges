@@ -14,9 +14,10 @@ $.ajax({
     timeout:  1000,
     success:  function(data) {
         var gauges = data.gauges;
+        if (gauges.length == 0) $('#gauge_container').text('No gauge connected.');
+        else $('#gauge_container').empty();
         for (var key in gauges) {
             var name = gauges[key]['port'];
-            $('#gauge_container').empty()
             $('<div>', { id: slug(name), class: 'gauge' })
                     .append( $('<span>', { class: 'label', text: name }))
                     .append( $('<span>', { class: 'nickname editable', text: gauges[key]['nickname'] }))
